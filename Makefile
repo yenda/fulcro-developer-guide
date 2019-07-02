@@ -1,7 +1,10 @@
 # gem install asciidoctor asciidoctor-diagram
 # gem install coderay
 docs/DevelopersGuide.html: DevelopersGuide.adoc
-	asciidoctor -o docs/DevelopersGuide.html -b html5 -r asciidoctor-diagram DevelopersGuide.adoc
+	asciidoctor -o docs/DevelopersGuide.html -b html5 -r asciidoctor-diagram \
+		-r ./src/ruby/register-fulcro-examples.rb \
+		-r ./src/ruby/fulcro-examples-extension.rb \
+    DevelopersGuide.adoc
 
 book: docs/DevelopersGuide.html
 

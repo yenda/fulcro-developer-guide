@@ -39,48 +39,47 @@ include Asciidoctor
 
 
 def create_asciidoc_block example_name, example_id, example_source
-
   anchor_name = example_name.gsub(/\s+/, '')
-  return %{
+  return <<-EOF
 .[[#{anchor_name}]]<<#{anchor_name},#{example_name}>>
 ====
+
 ++++
 <button class="inspector" onClick="book.main.focus('#{example_id}')">Focus Inspector</button>
 <div class="short narrow example" id="#{example_id}"></div>
 <br/>
 ++++
+
 [source,clojure,role="source"]
-----
+-----
 include::#{example_source}[]
-----
+-----
+
 ====
-}
+EOF
 end
-
-
 
 class FulcroPreprocessor < Extensions::Preprocessor
   def process document, reader
     return reader if reader.eof?
+    result = [];
 
-    replacement_lines = reader.read_lines.map do |line|
+    reader.read_lines.each do |line|
       if(line.include? '$example$')
-
         parameters = line.split("$")[2]
         example_name = parameters.split(",")[0].strip()
         example_id = parameters.split(",")[1].strip()
         example_source =  parameters.split(",")[2].strip()
         example_block = create_asciidoc_block(example_name, example_id, example_source)
-
-        (line.gsub line, example_block)
-
+        new_lines = example_block.split("\n")
+        new_lines.each do |line|
+          result.push(line)
+        end
       else
-        line
+        result.push(line)
       end
     end
-    reader.unshift_all(replacement_lines)
-    # TODO Remove the generation of the intermediate Expanded file
-    File.open("DevelopersGuide.adoc", "w") { |file| file.puts reader.lines}
+    reader.unshift_lines(result)
     reader
   end
 end
